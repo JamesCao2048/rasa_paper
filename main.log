@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.4.19)  24 APR 2023 22:33
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.4.19)  25 APR 2023 00:02
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -717,20 +717,14 @@ LaTeX Warning: `!h' float specifier changed to `!ht'.
 ) (./src/sec03-rq1.tex [2]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [3 <./figs/overview.pdf>]
-Underfull \hbox (badness 10000) in paragraph at lines 86--91
-\OT1/ptm/m/n/10 (+20) ex-ter-nal ML li-braries di-rectly or in-di-rectly. Less
- []
-
-[4]) (./src/sec04-rq2.tex
+ [3 <./figs/overview.pdf>] [4]) (./src/sec04-rq2.tex
 <figs/component_interaction.pdf, id=298, 660.76929pt x 413.44312pt>
 File: figs/component_interaction.pdf Graphic file (type pdf)
 <use figs/component_interaction.pdf>
 Package pdftex.def Info: figs/component_interaction.pdf  used on input line 28.
 
 (pdftex.def)             Requested size: 251.09494pt x 157.11pt.
- [5 <./figs/component_interaction.pdf>])
-(./src/sec05-rq3.tex [6]
+ [5 <./figs/component_interaction.pdf>]) (./src/sec05-rq3.tex [6]
 <figs/code_composition.pdf, id=341, 934.6759pt x 196.61255pt>
 File: figs/code_composition.pdf Graphic file (type pdf)
 <use figs/code_composition.pdf>
@@ -780,7 +774,7 @@ Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 112.
 Here is how much of TeX's memory you used:
  13549 strings out of 480608
  212269 string characters out of 5903630
- 556657 words of memory out of 5000000
+ 556658 words of memory out of 5000000
  28641 multiletter control sequences out of 15000+600000
  593803 words of font info for 360 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -792,7 +786,7 @@ live/2020/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/202
 st/fonts/type1/urw/times/utmbi8a.pfb></usr/local/texlive/2020/texmf-dist/fonts/
 type1/urw/times/utmr8a.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/urw/
 times/utmri8a.pfb>
-Output written on main.pdf (12 pages, 284529 bytes).
+Output written on main.pdf (12 pages, 284608 bytes).
 PDF statistics:
  546 PDF objects out of 1000 (max. 8388607)
  497 compressed objects within 5 object streams
