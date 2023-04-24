@@ -1,0 +1,67 @@
+This is BibTeX, Version 0.99d (TeX Live 2020)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+The style file: IEEEtranS.bst
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: IEEEabrv.bib
+Database file #2: src/reference.bib
+I was expecting an "="---line 670 of file src/reference.bib
+ : and 
+ :     Rokach, Lior",
+I'm skipping whatever remains of this entry
+-- IEEEtranS.bst version 1.12 (2007/01/11) by Michael Shell.
+-- http://www.michaelshell.org/tex/ieeetran/bibtex/
+-- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
+** Sorting version - not for normal IEEE work.
+Warning--empty year in pengFirstLookIntegration2020
+Warning--empty title in Shmilovici2005
+Warning--missing publisher in Shmilovici2005
+Warning--empty year in Shmilovici2005
+
+Done.
+You've used 86 entries,
+            4483 wiz_defined-function locations,
+            1710 strings with 32583 characters,
+and the built_in function-call counts, 78797 in all, are:
+= -- 6983
+> -- 2517
+< -- 419
++ -- 1298
+- -- 684
+* -- 3856
+:= -- 11310
+add.period$ -- 171
+call.type$ -- 86
+change.case$ -- 596
+chr.to.int$ -- 975
+cite$ -- 90
+duplicate$ -- 5098
+empty$ -- 5999
+format.name$ -- 750
+if$ -- 18044
+int.to.chr$ -- 0
+int.to.str$ -- 86
+missing$ -- 899
+newline$ -- 301
+num.names$ -- 172
+pop$ -- 2690
+preamble$ -- 1
+purify$ -- 511
+quote$ -- 2
+skip$ -- 5993
+stack$ -- 0
+substring$ -- 3150
+swap$ -- 3825
+text.length$ -- 94
+text.prefix$ -- 0
+top$ -- 6
+type$ -- 939
+warning$ -- 4
+while$ -- 340
+width$ -- 88
+write$ -- 820
+(There was 1 error message)

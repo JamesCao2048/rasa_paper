@@ -1,0 +1,96 @@
+% !TeX root = ../main.tex
+
+\section{RQ1: System Complexity Analysis}
+\vspace{-3pt}
+
+\subsection{Methodology}
+
+To answer \textbf{RQ1}, we identified and characterized ML and rule-based components in Rasa through an in-depth analysis of its source code and documentation. We excluded DST and NLG as they are fully implemented with rule-based code logic in Rasa without ML components. 
+
+All the modules we identified are listed in Table \ref{system_complexity}, except for a special module, \textit{Shared}, as it contains general data processing code and  ML model definition code (e.g., Transformer), while does not contain any independent components. We will consider it in the last three RQs. Specifically, for each component, we recursively tracked methods within it to manually extract the model or rule definition code. We investigated the implementation details of APIs in ML libraries by examining the documentation and source code of external libraries, including ML model type and number of candidate models. 
+
+In particular, we analyzed if ML components are implemented using direct or indirect external libraries, whether the components can be trained (notice that not only some of ML components can be trained, but also certain rule-based components, as long as they update internal parameters when processing training data),  whether Rasa implements components with its own code and provides built-in model and rule definition code, and the lines of code (LoC) of each component, excluding blank lines, code comments and import statements. 
+
+%\textit{Direct Lib.}: External ML libraries used to implement ML components;
+
+%\textit{Indirect Lib}.: Lower-level ML libraries relied by above mentioned external ML libraries;
+
+% \textit{Trainable}: Whether the component can be trained. In particular, not only some of ML components can be trained, but also some rule-based components as long as they update internal parameters when processing training data; 
+
+% \textit{Rasa Imp.}: Whether Rasa implements components with its own code and provides built-in model and rule definition code; 
+
+% \textit{LoC}: Lines of code (LoC) of each component excluding blank lines, code comments and import statements. 
+
+
+\subsection{Results}
+
+The results are summarized in Table \ref{system_complexity}.
+Components shown in gray color are ML components, while others are rule-based components. In total,
+there are 6 modules, consisting of 15 ML and 14 rule-based components. These components encompass 23 ML models and are implemented with 7 directly dependent external ML libraries and 3 indirectly dependent external ML libraries. In particular, all ML components in \textit{Tokenizer} and \textit{Featurizer} are not trainable because pre-trained language models are applied. All components in \textit{Policy} are implemented in Rasa's own code, because there are no ready-to-use Policy models provided by existing libraries. There are a total of 5348 LoC in ML components and 2980 LoC in rule-based components. In addition, the general module \textit{Shared} contains 5375 LoC, which is not listed in the table.
+
+Notably, we find that classical machine learning models (e.g., Support Vector Machine and Conditional Random Field) together with deep learning models (e.g., Convolutional Neural Networks and Transformer) play an important role in Rasa. This is different from the previous study \cite{pengFirstLookIntegration2020} on Apollo, which is focused on deep learning models.
+
+
+Next, we introduce components used in each module.
+
+\textbf{Tokenizer.} Tokenizer splits the user utterance into tokens with component specific split symbols (e.g., whitespace and punctuation). (1) \textit{SpacyTokenizer} provides the richest token information, including splitting tokens with rules, lemmatizing tokens with a look-up table, and performing part-of-speech~tagging with a multi-layer perceptron (MLP). 
+(2) \textit{JiebaTokenizer} is the only component that tokenizes non-English sentences using Hidden Markov Model (HMM) \cite{eddy1996hidden}. (3) \textit{MitieTokenizer} and \textit{WhitespaceTokenizer} toeknize text with predefined rules.
+% The lemmatization and Part-of-Speech tags can be used by \textit{CountVectorsFeaturizer} and \textit{LexicalSyntacticFeaturizer} respectively.
+% \textit{MitieTokenizer} tokenizes the text in the same way as the CoNLL 2003 dataset was tokenized with rules. \todo{Add reference of CoNLL 2003 dataset.} \textit{WhitespaceTokenizer} is the only tokenizer that implemented in Rasa source code. It tokenizes sentences and removes emoji tokens with regex patterns.
+
+\textbf{Featurizer.} As shown in Fig. \ref{overview_fig}, Featurizer converts tokens into features for downstream module inference. (1) \textit{ConveRTFeaturizer} loads TFHub's \cite{TensorHub} pre-trained ConveRT (Conversational Representations from Transformers) TensorFlow model  to featurize tokens \cite{henderson2019convert}. (2) \textit{LanguageModelFeaturizer} loads pre-trained language models from Hugging Face Transformers \cite{transformers}, including BERT \cite{devlin2018bert}, GPT \cite{hu2020gpt}, XLNet \cite{yang2019xlnet}, Roberta \cite{liu2019roberta}, XLM \cite{xlm} and GPT2 \cite{gpt2}.
+(3) \textit{MitieFeaturizer} combines Canonical Correlation Analysis (CCA) feature and word~morphology features together. (4) \textit{SpacyFeaturizer} applies HashEmbedCNN or Roberta to convert tokens to features, depending on the pre-trained Spacy pipeline specified in the configuration file.
+(5) \textit{CountVectorsFeaturizer}, \textit{LexicalSyntacticFeaturizer} and \textit{RegexFeaturizer} create sparse features with n-grams, sliding window and regex patterns,  respectively. 
+% It can be divided into \textit{DenseFeaturizer} and \textit{SparseFeaturizer}, which generate features first and then store them with dense matrix and sparse matrix, respectively. Also, components of \textit{DenseFeaturizer} are implemented with unsupervised pre-trained word embedding models(e.g. BERT), and contain all ML components in \textit{Featurizer}. \todo{Add reference of word2vec.} 
+% Components of \textit{SparseFeaturizer} are implemented with rules to create features of tokens.
+
+
+% \textit{CountVectorsFeaturizer} creates bad-of-words representation of tokens with Scikit-learn, and can be configured to use word or character n-grams.
+% \textit{LexicalSyntacticFeaturizer} creates lexical and syntactic features for \textbf{EntityExtractor}, moving over the tokens with a sliding window to extract features like if the token is at the beginnning of the sentence and if the token is lower case. 
+% With regex patterns defined in training data, \textit{RegexFeaturizer} creates features to denote whether these patterns exist in current tokens. 
+
+\textbf{IntentClassifier.} IntentClassifier generates a predicted intent list ordered by confidence scores based on tokens and features from upstream modules.
+(1) \textit{DIETClassifier} implements Dual Intent and Entity Transformer (DIET) to perform intent~classification and entity recognition simultaneously, and is therefore included in both \textbf{IntentClassifier} and \textbf{EntityExtractor} modules. % With this in mind, the following analysis considered \textit{DIETClassifier} in both modules but only counted once in the overall summarized results.
+(2) \textit{MitieIntentClassifier} and \textit{SklearnIntentClassifier} apply a multi-class Support Vector Machine (SVM) \cite{Shmilovici2005} with a sparse linear kernel using Scikit-learn and Mitie, respectively.
+(3) \textit{KeywordIntentClassifier} classifies  user intent with keywords extracted from training data.
+% \textit{MitieIntentClassifier} applies a multi-class linear Support Vector Machine (SVM) with a sparse linear kernel to perform intent classification.
+% \textit{SklearnIntentClassifier} trains a linear SVM with grid search to find the best hyperparameters set.
+% \textit{KeywordIntentClassifier} takes training examples for an intent as keywords of it. This means the entire example is the keyword, not the individual words in the example is used to be matched against the user utterance. This component is not scalable and robust, thus is only intented in small projects or to get started.
+(4) \textit{FallbackClassifier} is a post-processing component to check the results of other components in \textit{DIETClassifier}. It identifies a user utterance with the intent \texttt{nlu\_fallback} if the confidence scores are not greater than  \texttt{threshold}, or the score difference of the two highest ranked intents is less than the \texttt{ambiguity\_threshold}.
+
+\textbf{EntityExtractor.} EntityExtractor extract entities such as the restaurant's location and price. (1) \textit{DIETClassifier} also serves as an EntityExtractor. 
+% \textit{CRFEntityExtractor} utilizes a conditional random fields (CRF) model from Scikit-learn to perform named entity recognition. \textit{MitieEntityExtractor} applies a multi-class linear SVM with a sparse linear kernel to extract entities, but does not provide entity confidence values. \textit{SpacyEntityExtractor} is the only non-trainable ML-based EntityExtractor, which uses a MLP to predict the entities. 
+(2) \textit{CRFEntityExtractor}, \textit{MitieEntityExtractor} and \textit{SpacyEntityExtractor} utilize a conditional random fields (CRF) model, a multi-class linear SVM, and a MLP to predict entities, respectively. 
+(3) \textit{DucklingEntityExtractor} and \textit{RegexEntityExtractor} extract entities using a duckling server \cite{duckling} and regex patterns.
+% \textit
+% {DucklingEntityExtractor} extracts common entities like dates and amounts of money with a duckling server \cite{duckling}. \textit{RegexEntityExtractor} extracts entities using the lookup tables and regex patterns defined in the training data. 
+(4) \textit{EntitySynonymMapper} is a post-processing component to convert synonymous entity values~into a same value. As Fig. \ref{overview_fig} shows, the value of ``price" entity, ``moderate", is coverted to ``mid" by \textit{EntitySynonymMapper}.
+
+\textbf{Selector.} \textit{ResponseSelector} aims to directly select the response from a set of candidate responses, which is also known as response selection task in the literature \cite{chaudhuri-etal-2018-improving}. It embeds user inputs and candidate responses in the same vector space, using the same neural network architecture as \textit{DIETClassifier}.
+
+\textbf{Policy.} Policy decides the action the system takes on each conversation based on dialogue states.
+(1) \textit{TEDPolicy} proposes a Transformer Embedding Dialogue (TED) model to embed dialogue states and system actions into a single~semantic~vector space, and select the action with the max similarity score~with the current dialogue states \cite{TED}.
+(2) \textit{MemoizationPolicy}, \textit{AugmentedMemoizationPolicy} and \textit{RulePolicy} match the current conversation history with examples in the training data and predefined rules to predict system actions.
+% \textit{MemoizationPolicy} checks if the current conversation history matches any example in the training data, and predicts the next action accroding to the matched training example. \textit{AugmentedMemoizationPolicy} is extended from \textit{MemoizationPolicy}, because it has a forgetting mechanism that will forget a certain amount of steps of the curent conversation and match the reduced history with training example.
+% \textit{RulePolicy} matchs conversations with pre-defined rules, which specify lists of user intents, entities, and corresponding system actions in order. 
+(3) \textit{UnexpecTEDIntentPolicy} decides on the possibility of the intent predicted by IntentClassifier given current dialogue states, which follows the same model architecture as \textit{TEDPolicy}.
+(4) \textit{PolicyEnsemble} is a post-processing component to select the proper system action from output actions of different policies. 
+% It selects the system action with the highest confidence score, and selects according to the priority of policies if there are multiple policies that predict actions with the highest confidence score. 
+% The components order from high priority to low is \textit{RulePolicy}, \textit{MemoizationPolicy}, \textit{AugmentedMemoizationPolicy}, \textit{UnexpecTEDIntentPolicy} and \textit{TEDPolicy}  
+
+
+\subsection{Implications}
+
+The system complexity of Rasa poses challenges for developers using Rasa (i.e., application developers) and developers creating Rasa (i.e., system developers).
+
+\textbf{Complexity from ML supply chain.} Rasa depends~on~10 external ML libraries directly or indirectly. Less than~100~(0.03\%) projects out of 355392 projects using TensorFlow on GitHub depend on 10 more DL libraries \cite{supply_chain}. It could be inferred that relying on 10 more ML libraries is also less common.
+For application developers, it is difficult to understand the implementation details of components that rely on external ML libraries, not to mention selecting proper components and parameters. For example, due to the lack of documentations of \textit{MitieFeaturizer} in Rasa, application developers need to inspect Mitie's source code to learn that it implements CCA using Dlib APIs. 
+% and combines the CCA feature with word morphology features.
+For system developers, vulnerabilities \cite{npm_technical_lag} and dependency bugs \cite{dependency_bug} may arise because of outdated or incompatible library versions. 
+Therefore, future work should provide supports for the management of components and corresponding dependent ML libraries for ML-enabled systems, similar to traditional software component analysis \cite{Foo2019TheDO}.
+
+\textbf{Complexity from configurations.} It could be extremely complex to configure Rasa with 29 components and hundreds of parameters, making it easy to misconfigure and thus affect functionality and performance. This kind of misconfiguration is similar to what happens in traditional configurable software systems \cite{configurable_system}. Additionally, finding optimal configurations for application developers' specific TDS scenarios is difficult,~also known as configuration debt \cite{hidden_technical_debt}. Although AutoML~has~been extensively studied to select appropriate ML models~and~parameters for specific tasks, they all focus on selecting a single ML model without considering the combination of multiple ML models and rules  \cite{XinHe2021AutoMLAS}. Another challenge~is~to~detect~potential bugs by testing a huge set of configuration settings. Existing studies on ML model testing mainly focus on testing a single ML model with predefined hyperparameters \cite{ml_testing}.
+ 
+% \textbf{Complexity from long ML pipeline.} 
+% \textbf{Complexity from different ML stages.} Different from Apollo.
+% Trainable. indroduce additional complexity.

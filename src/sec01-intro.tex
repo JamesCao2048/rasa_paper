@@ -1,0 +1,26 @@
+% !TeX root = ../main.tex
+
+\section{introduction}
+\vspace{-3pt}
+
+The recent advances in machine learning (ML) have attracted an increasing interest in applying ML across a breadth~of~business domains, e.g., self-driving cars, virtual assistants, robotics, and health care. According to the Global AI Adoption~Index~by IBM~\cite{ibmreport}, 35\% of companies around the world have~deployed AI in their business, while 42\% of companies are exploring AI. Such a trend has caused the emergence of ML-enabled systems which are composed of ML and non-ML components.~ML~components are often important, but usually only a part of many components in ML-enabled systems~\cite{Christian2022}.
+
+The previous research on software engineering~for machine learning often takes a model-centric view that~focuses~only~on the analysis of ML models~\cite{Christian2022, Katie2020}. For~example,~many~advances have been made for DL model testing~(e.g.,~\cite{Pei2017, Tian2018, Sun2018, Aggarwal2019, Kim2019, Feng2020, Zhang2020, Dola2021, ml_testing}),~verification~(e.g.,~\cite{Paulsen2020a, Toledo2021, Paulsen2020b, Baluta2021, Singh2019}) and debugging (e.g., \cite{Ma2018, Li2020, odena19a,Tao2020}). Only a small~body~of work takes a holistic system view, e.g., architectural design \cite{Yokoyama2019, Serban2022}, technical debt~\cite{hidden_technical_debt, tang2021empirical}, ML component entanglement \cite{Zhang2016, nushi2017human, fix_that_fails}, feature interaction \cite{Abdessalem2018, Abdessalem2020, feature_interaction}, and model interactions in Apollo~\cite{pengFirstLookIntegration2020}. However, the lack of system-level understanding of ML-enabled systems may hide problems in engineering ML-enabled systems and hinder practical solutions.
+
+In this paper, we adopt this system view, and conduct~a~case study on Rasa 3.0 \cite{rasa} to characterize the complexity~of~such~a large-scale ML-enabled system as well as to understand~the~impact of the complexity on testing. Rasa is a task-oriented~industrial dialogue system that has been widely used by various companies around~the world. Therefore, we believe Rasa is a good representative of real-world ML-enabled systems. 
+
+We first investigate~the~complexity of Rasa at three levels.~At the system level, we explore how ML components~are~adopted across the modules in Rasa. We find that there are~\todo{23}~ML~models in \todo{15} ML components across \todo{6} modules. At the interaction level,~we~analyze how ML components interact with other~components in Rasa. We find that there are \todo{43} interaction patterns and \todo{230} interaction instances across \todo{4} major categories and \todo{8} inner categories. At the component level, we investigate how the code of ML components is composed by what kinds~of~code. We find that \todo{57.1\%} of the code inside components are data processing code, and there are \todo{8} composition patterns between data processing code and model usage code.
+
+We then explore the impact of the complexity on testing~from two perspectives. From the testing practice perspective,~we~analyze how is the characteristic of test cases, and how well~they cope with the complexity. We find that the test coverage~of~component interactions is low because of the complexity from huge configuration space and from hidden component interactions. From the mutation testing perspective, we study how~is~the~bug-finding capability of test cases and test data (i.e., the data for testing models), and how well they cope with the complexity. 
+We find that there may be many potential bugs in data processing code that can only be detected by test cases, due to the complexity from data processing code.
+The capability of test data to kill mutants is limited because of the complexity from huge configuration space.
+
+Based on our case study, we highlight practical~implications to improve software engineering for ML-enabled~systems. For example, the configuration space of ML-enabled systems should be tested adequately, and configuration suggestions~should~be provided to developers.  A general taxonomy of data processing code should be constructed, and then the maintaining~and~testing tools for it can be developed. More integration-level test cases should be created to cover component interactions. Test cases and test data should be used in combination to detect both non-ML specific and ML-specific bugs.
+% Test data is not 
+
+In summary, this paper makes the following contributions.
+
+\begin{itemize}
+\item We conduct an in-depth case study on Rasa to characterize its complexity~and the~impact of its complexity on testing.
+\item We highlight practical implications to improve software engineering for ML-enabled systems.
+\end{itemize}

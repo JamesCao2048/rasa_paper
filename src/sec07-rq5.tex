@@ -1,0 +1,209 @@
+% !TeX root = ../main.tex
+
+\section{RQ5: Mutation Testing Analysis}
+\vspace{-3pt}
+\subsection{Methodology}
+
+To answer \textbf{RQ5}, we performed an analysis of mutation~testing~\cite{mutation_survey}. 
+It applies mutators to generate versions of faulty~code, i.e., mutants. For every mutant, test cases were executed~to~collect the testing results to decide whether~the~mutant~was~killed. %For ML programs, the decision logic is learned from the model definition code, training program and training data, which is why previous ML specific mutation operators also mutate training data, model definition code, hyperparameter, trained model, etc. \cite{DeepMutation,DeepMutation++}. Moreover, the way to decide whether a mutant is killed in ML programs is through performance metrics instead of the running status of test cases like traditional software. 
+As Rasa contains both ML components and rule-based components, we considered both mutators for traditional software (i.e., syntactic mutators) and ML-specific mutators.
+As Table~\ref{mutation_operator} shows, we used 9 syntactic mutators from Jia et al. \cite{JiaMutation} and 11 ML specific mutators from DeepCrime \cite{DeepCrime}. 
+
+We list steps of mutation analysis in the following.
+
+\textbf{Step 1: Generate mutants.}
+We generated syntactic mutants using \textit{mutmut} \cite{mutmut}. %which is a Python mutation tool and has been used by \cite{JiaMutation,LibJiaMutation}.
+We used two groups of syntactic~mutators, i.e., \textit{Logic} and \textit{Value}, which mutate the logic flow~and~variable value. %(e.g., change ``break" keyword into ``continue") 
+ %(e.g., plus the numeric variable value with $1$) of the code, respectively. 
+% The mutation tool parses the Python code into Abstract Syntax Tree (AST) and perform possible mutation operators with AST nodes.
+Besides, we generated ML specific mutants with DeepCrime \cite{DeepCrime}. 
+% which traverses the Python AST and recognize specific Keras API nodes to mutate them (e.g. change the activation function with another Keras API). 
+We used 4 of 8 mutation groups in DeepCrime (\textit{Activation}, \textit{Regularization}, \textit{Weights} and \textit{Optimization}). For others, mutators in \textit{Training Data} and \textit{Validation} groups are not the focus of this paper; \textit{Hyperparameters} group is not included, as hyperparameters in Rasa are specified with configuration files by developers; and \textit{Loss Function} group is not applicable,~as the loss functions in Rasa are all implemented from scratch, while the mutators provided by DeepCrime are only to replace the Keras loss function API with another one. Besides, we only generated mutants for 6 labeled code cateogries in \textbf{RQ3}, excluding general utils code. We generated no more than 30 mutants for every Python class to reduce~potential bias. We also only modified one AST node for every mutant.
+
+\textbf{Step 2: Perform mutation testing analysis with test cases.} For every mutant, only test cases that cover the mutated line were collected (from test coverage data in \textbf{RQ4}) and executed to save running time. %We recorded all test case execution~statuses and logs for further analysis. 
+If any test case fails on a mutant, the mutant is considered as killed by the test case. Otherwise, the mutant is considered as survived. 
+A test case could fail~with three symptoms: (1) an assertion fails; (2) an execution or runtime error manifests; and (3) the test case times out. 
+The maximum time for a test case to run is 10 times of its running time in the original clean code version. 
+Besides, test cases were executed 3 times for every mutant to avoid flaky tests. We found that all test case statuses remain same for three runs. 
+% which shows that test case requires less runs than test data to detect mutants.
+
+\textbf{Step 3: Perform mutation testing analysis with test~data.} For those survived mutants in Step 2, we assessed the impact of them with 3 default configuration files and the restaurant domain data in \textit{Multiwoz} \cite{multiwoz}, which is a widely used multi-domain dataset to evaluate the performance of TDS.
+% The Github repo\footnote{https://github.com/razvanra2/ChatBot} was utilized to convert \textit{Multiwoz} into Rasa data format and  are adopted to train the Rasa pipeline.
+Given a configuration file, only components specified in it are included in the Rasa pipeline, thus mutated nodes of some survived mutants from Step 2 will not be executed~as~they~are~not~\textit{impacted} by the configuration.
+Due to the stochastic nature of machine learning programs, we trained both the mutated program and original program for 5 times with 80/20 data split into train/test data randomly, and decided whether the performance metrics of two versions are statistically significant with non-negligible and non-small effect size.
+We followed the same formula to decide whether a mutant is killed with the test data as \cite{mutation_evaluation, DeepCrime}, with the threshold of significance value is 0.05 and of effect size is 0.5.
+% and we trained the Rasa pipeline with 100\%/75\%/25\% training data separately to investigate the performance degeadation of mutants with different amount of training data.
+We adopted F1 scores of \textit{IntentClassifier}, \textit{EntityExtractor} and \textit{Policy} as performance metrics, i.e., if the F1 score in any of the three modules is statistically different between two code versions, the mutant is marked as killed by test data.
+\subsection{Results}
+
+
+% \todo{website: add detail analysis of test dataset(error analysis) }
+
+\begin{table}[]
+  \tabcolsep=1.0mm
+  \begin{center}
+  \caption{Mutation Testing Results}
+  \vspace{-5pt}
+  \begin{tabular}{ccccccc}
+  \hline
+  \multirow{2}{*}{\textbf{Mutation Group}} & \multirow{2}{*}{\textbf{Operator}} & \multirow{2}{*}{\textbf{Total}} & \multicolumn{2}{c}{\textbf{Test Case}} & \multicolumn{2}{c}{\textbf{Test Data}} \\ \cline{4-7} 
+                                                       &                            &                       & Killed & Survived              & Impacted & Killed  \\ \hline
+  \multicolumn{1}{c|}{\multirow{6}{*}{Logic}}          & \multicolumn{1}{c|}{ArOR}  & \multicolumn{1}{c|}{109} &86        & \multicolumn{1}{c|}{23} &10          & 1 \\
+  % \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{BitOR} & \multicolumn{1}{c|}{} &        & \multicolumn{1}{c|}{} &          &         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{ComOR} & \multicolumn{1}{c|}{109} &88        & \multicolumn{1}{c|}{21} &6          &0         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{LogOR} & \multicolumn{1}{c|}{145} &112        & \multicolumn{1}{c|}{33} &14          &0         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{AsOR}  & \multicolumn{1}{c|}{20} &19        & \multicolumn{1}{c|}{1} &0          &0         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{MemOR} & \multicolumn{1}{c|}{32} &30        & \multicolumn{1}{c|}{2} &0          &0         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{KVR}   & \multicolumn{1}{c|}{12} &7        & \multicolumn{1}{c|}{5} &1          &0         \\ \hline
+  \multicolumn{1}{c|}{\multirow{3}{*}{Value}}          & \multicolumn{1}{c|}{BVR}   & \multicolumn{1}{c|}{64} &32        & \multicolumn{1}{c|}{32} &9          &0         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{NVR}   & \multicolumn{1}{c|}{224} &180        & \multicolumn{1}{c|}{64} &18          &2         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{AsVR}  & \multicolumn{1}{c|}{582} &525        & \multicolumn{1}{c|}{67} &10          &0         \\ \hline
+  \multicolumn{1}{c|}{\multirow{3}{*}{Activation}}     & \multicolumn{1}{c|}{ACH}   & \multicolumn{1}{c|}{22} &3        & \multicolumn{1}{c|}{19} &18          &6         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{ARM}   & \multicolumn{1}{c|}{2} &0        & \multicolumn{1}{c|}{2} &1          &0         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{AAL}   & \multicolumn{1}{c|}{22} &11        & \multicolumn{1}{c|}{11} &11          &2         \\ \hline
+  \multicolumn{1}{c|}{\multirow{3}{*}{Regularization}} & \multicolumn{1}{c|}{RAW}   & \multicolumn{1}{c|}{6} &0        & \multicolumn{1}{c|}{6} &3          &3         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{RCW}   & \multicolumn{1}{c|}{10} &0        & \multicolumn{1}{c|}{10} &10          &0         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{RRW}   & \multicolumn{1}{c|}{5} &0        & \multicolumn{1}{c|}{5} &5          &0         \\ \hline
+  \multicolumn{1}{c|}{\multirow{3}{*}{Weights}}        & \multicolumn{1}{c|}{WCI}   & \multicolumn{1}{c|}{24} &10        & \multicolumn{1}{c|}{14} &13          &1         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{WAB}   & \multicolumn{1}{c|}{4} &0        & \multicolumn{1}{c|}{4} &3          &1         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{WRB}   & \multicolumn{1}{c|}{3} &1        & \multicolumn{1}{c|}{2} &2          &0         \\ \hline
+  \multicolumn{1}{c|}{\multirow{2}{*}{Optimization}}   & \multicolumn{1}{c|}{OCH}   & \multicolumn{1}{c|}{24} &2        & \multicolumn{1}{c|}{22} &9          &6         \\
+  \multicolumn{1}{c|}{}                                & \multicolumn{1}{c|}{OCG}   & \multicolumn{1}{c|}{8} &0        & \multicolumn{1}{c|}{8} &3          &0         \\ \hline
+  \multicolumn{1}{c|}{\multirow{1}{*}{Total}}   & \multicolumn{1}{c|}{}   & \multicolumn{1}{c|}{1447} &1106        & \multicolumn{1}{c|}{341} &146          &22         \\ \hline
+  \end{tabular}
+  \label{mutation_operator}
+  \end{center}
+  \end{table}
+  
+  % \todo{add merged results of 100\%, 75\% and 25\% killed.}
+
+  The mutation testing results by each mutator are shown~in Table \ref{mutation_operator}. There are 1447 mutants generated, 1106 (76.4\%)~mutants killed by test cases, 341 (23.6\%) mutants survived, 146 (10.1\%) mutants impacted, and 22 (1.5\%) mutants killed by test data. 
+  Only 146 mutants from 341 survived mutants impact the default 3 Rasa pipelines, which shows that the huge configuration space is challenging to be tested  adequately.
+  81.3\% syntactic mutants and 20.0\% ML specific mutants are killed by test cases, while 4.4\% syntactic mutants and 24.4\% ML specific mutants from impacted mutants are killed by test data.
+  It shows that test case is much more effective to detect syntactic mutants and slightly less effective to detect ML specific mutants than test data. 
+  % because \textit{ML specific mutants} are more like \textit{mis-configuration problems} than \textit{bugs} in traditional softwares.
+  The killed syntactic mutants and ML-specific mutants by test data cause the F1 score degradation of \textit{IntentClassifier}, \textit{EntityExtractor} and \textit{Policy} by 20.8\%, 0.8\%, 3.6\% and 11.1\%, 13.4\%, 5.7\% on average.
+
+  %1079/(248+1079) = 81.3%, 26/130 =20%, 3/68= ,  19/78=
+  
+  % However, more mutants are killed with 75\% training data than with 25\% training data, because the performance metrics are poor even in clean Rasa code version with 25\% training data.
+  % \todo{should see the assert error killed by test data(more fair to compare the ability between test case and test data). }
+  
+  % \todo{any mutants killed by test cases(assertion error), the impact on test data?}
+
+  \begin{table}[!t]
+  \begin{center}
+  \caption{Mutant Location Results}
+  \vspace{-5pt}
+  \scalebox{1}{
+    \begin{tabular}{cccccc}
+      \hline
+      \multirow{2}{*}{\textbf{Location}} & \multirow{2}{*}{\textbf{Total}} & \multicolumn{2}{c}{\textbf{Test Case Result}} & \multicolumn{2}{c}{\textbf{Test Data Result}} \\ \cline{3-6} 
+                                       &                          & Killed & Survived                 & Impacted & Killed \\ \hline
+      \multicolumn{1}{c|}{Data Prep.}  & \multicolumn{1}{c|}{385} & 326    & \multicolumn{1}{c|}{59}  & 23       & 0      \\
+      \multicolumn{1}{c|}{Data Post.}  & \multicolumn{1}{c|}{271} & 222    & \multicolumn{1}{c|}{49}  & 5        & 0      \\
+      \multicolumn{1}{c|}{Model Usage} & \multicolumn{1}{c|}{307} & 243    & \multicolumn{1}{c|}{64}  & 4        & 0      \\
+      \multicolumn{1}{c|}{Model Def.}  & \multicolumn{1}{c|}{364} & 224    & \multicolumn{1}{c|}{140} & 99       & 22     \\
+      \multicolumn{1}{c|}{Rule Usage}  & \multicolumn{1}{c|}{4}   & 4      & \multicolumn{1}{c|}{0}   & 0        & 0      \\
+      \multicolumn{1}{c|}{Rule Def.}   & \multicolumn{1}{c|}{115} & 101    & \multicolumn{1}{c|}{14}  & 4        & 0      \\ \hline
+      \end{tabular}}
+    \label{mutation_location}
+    \end{center}
+    \end{table}
+
+  The mutation testing results w.r.t. the location of mutants are shown in Table \ref{mutation_location}. 224 (61.5\%) of 364 mutants in model definition code, and 896 (82.8\%) of 1082 mutants in other code categories are killed by test cases. 
+  In particular, few mutants in code categories except model definition are impacted and killed by test data, which implies that test data is only effective to kill mutants in model definition code.
+
+   
+    \begin{table}[!t]
+        \begin{center}
+          \tabcolsep=1.0mm
+            \caption{Test Case Mutation Results}
+            \vspace{-5pt}
+        \scalebox{0.95}{
+        \begin{tabular}{c|c|cccc}
+        \hline
+        \textbf{Category} & \textbf{Type} &\textbf{Test Num.} &\textbf{Strong Test Num.}     & \textbf{Covered}        &\textbf{Killed}  \\ \hline
+        \multirow{3}{*}{Granularity}   & Method &240 &59 &947     & 635      \\
+                                          & Component &156 &31 &1121       &709     \\
+                                          & Integration &65 &29 &903    &613      \\ \hline
+        \multirow{4}{*}{Stage}  & Infer. &331 &86 &1358           &995      \\
+                                          & Training &317 &75 &1184        &847      \\
+                                          & Evaluation &47 &11 &772 &476       \\ \hline
+        \multirow{4}{*}{Oracle Type}  & I-O &312 &98 &1298    &956      \\
+                                          & C-S  &123 &19 &1103  &707      \\
+                                          & Diff &15 &3  &625   &338    \\
+                 & Exception &49  &6 &686 &352   \\ \hline
+        \end{tabular}}
+        \label{test_mutation}
+    \end{center}
+        \end{table}
+    
+    We investigated the capability to detect mutants~w.r.t.~different categories of test cases, by calculating the ratio of \textit{strong test case number} to \textit{all test case number}, and the ratio of \textit{killed mutants} to \textit{covered mutants} of them.  
+    We define \textit{strong test case} as the test case that kills equal or more than 75\% of its covered mutants. 
+    As Table \ref{test_mutation} shows, test cases in integration level have the highest ratio of strong test case (44.6\%) and highest ratio of killed mutants (67.9\%) among three granularity levels.
+    Test cases with given input-output test oracle have the highest ratio of strong test case (31.4\%)  and highest ratio of killed mutants (73.7\%) among four oracle types, while test cases with other three oracle types have similar ratios.  
+
+
+%  \todo{}
+%        \begin{table}[!t]
+%          \tabcolsep=1.0mm
+%            \begin{center}
+%                \caption{Test Module with Mutant Module Analysis}
+%                \vspace{-5pt}
+%            \scalebox{0.95}{
+%            \begin{tabular}{c|cccccc}
+%            \hline
+%            \textbf{Test \textbackslash{} Mutant Module} & To. & Fe. & In. & En. & Se. & Po.  \\ \hline
+%            Tokenizer        &41/46 &0  &0  &0  &0  &0    \\
+%            Featurizer       &28/31                       &164/180  &0  &0  &0  &0     \\
+%            IntentClassifier &24/32                       &60/96  &101/147  &4/19  &0  &0      \\
+%            EntityExtractor  &24/30                       &10/18  &44/59  &110/141  &0  &0      \\
+%            Selector         &21/26                       &44/74  &29/42  &0  &15/19  &0      \\
+%            Policy           &0                       &0  &0  &0  &0  &252/307    \\
+%            Diff & 3/6 & 20/20 & 8/12 & 1/3 & 0 & 0 
+%            \\
+%                                                      \hline
+%            \end{tabular}}
+%            \label{test_module}
+%        \end{center}
+%            \end{table}
+  
+%  To evaluate the capability of integration-level test cases in Rasa, we computed the relations of module of test case and its killed/covered mutants, and the results are shown in Table \ref{test_module}.
+%  The \textit{Diff} row presents the number of mutants in each module that can not be killed/covered by component-level and method-level tests, and can only be killed/covered by integration-level tests.
+%  There are 32/41 mutants can only be killed/covered by integration tests in total.
+%  We also found that no mutants that killed/covered by other tests can not be killed/covered by integration-level tests. 
+%  % For example, integration-level test cases that aim to test \textit{IntentClassifier} can also detect mutants located in \textit{Featurizer}, because it may call \textit{Featurizer} to process input data.     
+%  It is harder for downstream modules (e.g. \textit{Policy}) to be tested than upstream modules, because there are no integration-level test cases for them. 
+
+\subsection{Implications}
+
+\textbf{Non-ML specific bugs and test cases in ML-enabled~systems.} 
+Complexity from data processing code causes that~non-ML specific bugs are prone to be introduced.
+% As Table \ref{code_type_stat} shows, the ML model usage and definition code only contributes 33.5\% LoC of all ML-related code, thus lots of non-ML specific bugs are prone to be introduced in data processing, rule usage and rule definition code. 
+Compared~with test data, test case is more effective to detect syntactic mutants, i.e., non-ML specific bugs.
+Moreover, it is notorious~for~developers to analyze, localize and fix bugs in ML programs~according to test data, thus interpreting \cite{interpretability}, debugging \cite{abid2022meaningfully} and repairing \cite{sun2022causality} techniques have been developed for ML models. 
+It is easier for developers to localize and fix bugs with failed test cases by analyzing violated test oracles.
+Thus, we claim that non-ML specific bugs and test cases in  ML-enbaled systems should be paid more attention to.
+Although there~is~a~rich~set of test cases in Rasa that achieve high code coverage, the kill ratio of mutants remains to be improved (76.4\%), especially of ML-specific mutants (29.8\%).
+The applicability and limitations of existing test case generation, selection and quality assurance techniques in ML-enabled systems are worthwhile to be explored \cite{kazmi2017effective, di2013coverage}. 
+
+% \textbf{Challenges of test case to kill mutants.}
+% Besides, interation-level test case is helpful
+% most effective to cover and kill mutants, but less in test suite.
+% More efforts should be paied to generate more integration-level test cases.
+% 
+
+\textbf{Challenges of test data to kill mutants.}
+Existing researches on mutation testing for ML programs only evaluated mutants with test data to decide whether they can be killed~\cite{DeepCrime,DeepMutation++,DeepMutation,mutation_evaluation,JiaMutation}.
+However, the capability of test data to kill mutants in large-scale ML-enabled systems is limited for two reasons.
+First, due to complexity from configurations, only part of mutants will impact the components of actual configured systems.
+Second, the amount and distributions of training data and test data affect the results a lot.
+For example, we tried to train the clean code version and mutated version with 75\% of original training data, the number of killed mutants changed from 22 to 83, which means some bugs may only manifest under specific training data settings. 
+Therefore, system developers should evaluate and test ML-enabled systems under more possible configurations and data settings that may be used by application developers to detect potential bugs.%, which is especially important for safety-critical systems.
+
+% Question: \textbf{Integration-level test can not be replace by component-level and method-level tests.} add here?
+
+
+% bug in xx place is harder to be killed, in xx place cause most performance degration.
+% test case targets at training stage cost too much time.
