@@ -5,8 +5,8 @@
 \subsection{Methodology}
 
 To answer \textbf{RQ5}, we performed an analysis of mutation~testing~\cite{mutation_survey}. 
-It applies mutators to generate versions of faulty~code, i.e., mutants. For every mutant, test cases were executed~to~collect the testing results to decide whether~the~mutant~was~killed. %For ML programs, the decision logic is learned from the model definition code, training program and training data, which is why previous ML specific mutation operators also mutate training data, model definition code, hyperparameter, trained model, etc. \cite{DeepMutation,DeepMutation++}. Moreover, the way to decide whether a mutant is killed in ML programs is through performance metrics instead of the running status of test cases like traditional software. 
-As Rasa contains both ML components and rule-based components, we considered both mutators for traditional software (i.e., syntactic mutators) and ML-specific mutators.
+It applies mutators to generate versions of faulty~code, i.e., mutants. For each mutant, test cases were executed~to~collect the testing results and determine whether~the~mutant~was~killed. %For ML programs, the decision logic is learned from the model definition code, training program and training data, which is why previous ML specific mutation operators also mutate training data, model definition code, hyperparameter, trained model, etc. \cite{DeepMutation,DeepMutation++}. Moreover, the way to decide whether a mutant is killed in ML programs is through performance metrics instead of the running status of test cases like traditional software. 
+Since Rasa contains both ML components and rule-based components, we considered mutators for traditional software (i.e., syntactic mutators) as well as ML-specific mutators.
 As Table~\ref{mutation_operator} shows, we used 9 syntactic mutators from Jia et al. \cite{JiaMutation} and 11 ML specific mutators from DeepCrime \cite{DeepCrime}. 
 
 We list steps of mutation analysis in the following.
@@ -179,13 +179,13 @@ We adopted F1 scores of \textit{IntentClassifier}, \textit{EntityExtractor} and 
 \subsection{Implications}
 
 \textbf{Non-ML specific bugs and test cases in ML-enabled~systems.} 
-Complexity from data processing code causes that~non-ML specific bugs are prone to be introduced.
+Complexity arising from data processing code increases the likelihood of introducing non-ML specific bugs.
 % As Table \ref{code_type_stat} shows, the ML model usage and definition code only contributes 33.5\% LoC of all ML-related code, thus lots of non-ML specific bugs are prone to be introduced in data processing, rule usage and rule definition code. 
-Compared~with test data, test case is more effective to detect syntactic mutants, i.e., non-ML specific bugs.
-Moreover, it is notorious~for~developers to analyze, localize and fix bugs in ML programs~according to test data, thus interpreting \cite{interpretability}, debugging \cite{abid2022meaningfully} and repairing \cite{sun2022causality} techniques have been developed for ML models. 
+Compared to test data, test case is more effective to detect syntactic mutants, i.e., non-ML specific bugs.
+Moreover, it is notorious~for~developers to analyze, localize and fix bugs in ML programs based on test data alone, leading to the development of interpretation \cite{interpretability}, debugging \cite{abid2022meaningfully} and repairing \cite{sun2022causality} techniques for ML models. 
 It is easier for developers to localize and fix bugs with failed test cases by analyzing violated test oracles.
-Thus, we claim that non-ML specific bugs and test cases in  ML-enbaled systems should be paid more attention to.
-Although there~is~a~rich~set of test cases in Rasa that achieve high code coverage, the kill ratio of mutants remains to be improved (76.4\%), especially of ML-specific mutants (29.8\%).
+Thus, we argue that non-ML specific bugs and test cases in  ML-enbaled systems should received greater attention.
+Although there~is~a~rich~set of test cases in Rasa that achieve high code coverage, the mutant kill ratio remains to be improved (76.4\%), particularly for ML-specific mutants (29.8\%).
 The applicability and limitations of existing test case generation, selection and quality assurance techniques in ML-enabled systems are worthwhile to be explored \cite{kazmi2017effective, di2013coverage}. 
 
 % \textbf{Challenges of test case to kill mutants.}
@@ -195,12 +195,12 @@ The applicability and limitations of existing test case generation, selection an
 % 
 
 \textbf{Challenges of test data to kill mutants.}
-Existing researches on mutation testing for ML programs only evaluated mutants with test data to decide whether they can be killed~\cite{DeepCrime,DeepMutation++,DeepMutation,mutation_evaluation,JiaMutation}.
+Existing researches on mutation testing for ML programs only evaluated mutants with test data to determine whether mutants can be killed~\cite{DeepCrime,DeepMutation++,DeepMutation,mutation_evaluation,JiaMutation}.
 However, the capability of test data to kill mutants in large-scale ML-enabled systems is limited for two reasons.
-First, due to complexity from configurations, only part of mutants will impact the components of actual configured systems.
-Second, the amount and distributions of training data and test data affect the results a lot.
-For example, we tried to train the clean code version and mutated version with 75\% of original training data, the number of killed mutants changed from 22 to 83, which means some bugs may only manifest under specific training data settings. 
-Therefore, system developers should evaluate and test ML-enabled systems under more possible configurations and data settings that may be used by application developers to detect potential bugs.%, which is especially important for safety-critical systems.
+First, due to complexity from configurations, only a subset of mutants will impact the components of actual configured systems.
+Second, the quantity and distribution of training data and test data affect the results a lot.
+For example, we attempted to train the clean code version and mutated version with 75\% of original training data, and the number of killed mutants changed from 22 to 83, which means some bugs may only manifest under specific training data settings. 
+Therefore, system developers should evaluate and test ML-enabled systems under a wider range of configurations and data settings that may be employed by application developers to detect potential bugs.%, which is especially important for safety-critical systems.
 
 % Question: \textbf{Integration-level test can not be replace by component-level and method-level tests.} add here?
 

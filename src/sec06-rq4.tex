@@ -219,7 +219,7 @@ The code coverage and labeled statistics of test cases are shown in Table \ref{t
         
         \subsection{Implications} 
         
-        \textbf{Low test coverage of component interactions.} It is difficult to achieve a high test coverage of component interactions,~due to the complexity caused by huge configuration space~and~hidden interactions. The only test cases that cover component~interactions (i.e., integration-level test cases) contribute no more than 15\% test cases.
+        \textbf{Low test coverage of component interactions.} It is difficult to achieve a high test coverage of component interactions~due to the complexity caused by vast configuration space~and~hidden interactions. The only test cases that cover component~interactions (i.e., integration-level test cases) contribute no more than 15\% test cases.
         Yet, integration-level test cases~can~cover~and kill more mutants than component-level and method-level test cases, as many mutants do not manifest~in~non-integration-level test cases \cite{integration_test}.
         Therefore, it is crucial to generate integration-level test cases for ML-enabled systems.
         
@@ -229,7 +229,7 @@ The code coverage and labeled statistics of test cases are shown in Table \ref{t
         % only 14.1\% test cases target at  integration-level.  
         
         \textbf{Limited test oracle types.} 
-        It is challenging and time-consuming to write test cases with given input-output pairs and component-specific constraints oracles, due to the complexity brought by lacking of specification for interactions. 
+        It is challenging and time-consuming to write test cases with given input-output pairs and component-specific constraints oracles, due to the complexity brought by the lack of specification for interactions. 
         As~a~result, those test cases without the need of specification of interactions, that is, differential executions and exception test oracles, have been widely utilized to tackle the oracle problem~in~test~case generation techniques for traditional software, such as differential testing \cite{evans2007differential}, fuzzing \cite{liang2018fuzzing} and search-based testing \cite{mcminn2011search}.
         Besides, we find that test cases with these two oracles have a similar capability to kill mutants similar to component-specific constraints oracle (see \textbf{RQ5}). In spite of this, only 13.9\% test cases in Rasa are written with differential executions and exception test oracles, implying that there could be a big room to apply these two test oracle types in test case generation techniques for ML-enabled systems.
 
